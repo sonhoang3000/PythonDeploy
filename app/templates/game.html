@@ -3,174 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puzzle Game</title>
+    <title>Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-        }
-
-        .container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            /* Khoảng cách giữa các mảnh ghép và ảnh gốc */
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            padding: 20px;
+            background-color: #f0f0f0;
         }
 
-        h1 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .puzzle-container {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 5px;
-        }
-
-        .tile {
-            width: 100px;
-            height: 100px;
-            background-color: pink;
-            font-size: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 5px;
-            cursor: pointer;
-            background-size: 300px 300px;
-            transition: background-color 0.3s;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: white;
+        iframe {
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-
-        #originalImage {
-            max-width: 300px;
-            max-height: 300px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-        }
-
-        .controls {
-            text-align: center;
-            margin-top: 20px;
+            width: 800px;
+            height: 800px;
         }
     </style>
 </head>
 
 <body>
-    <div>
-        <h1>Puzzle Game</h1>
-
-        <div class="container">
-            <!-- Puzzle bên trái -->
-            <div class="puzzle-container" id="puzzle">
-                <!-- Các ô sẽ được tạo động bằng JavaScript -->
-            </div>
-
-            <!-- Ảnh gốc bên phải -->
-            <img id="originalImage" src="" alt="Original Image" />
-        </div>
-
-        <div class="controls">
-            <button onclick="shufflePuzzle()">Shuffle</button>
-            <button onclick="solvePuzzle()">Solve</button>
-            <input type="file" id="imageInput" onchange="loadImage()">
-        </div>
-    </div>
-
-    <script>
-        const puzzleDiv = document.getElementById('puzzle');
-        const originalImage = document.getElementById('originalImage');
-
-        function shufflePuzzle() {
-            fetch('/shuffle', {
-                method: 'POST'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Cập nhật giao diện với puzzle đã xáo trộn
-                    console.log("Puzzle shuffled:", data);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function solvePuzzle() {
-            fetch('/solve', {
-                method: 'POST'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Cập nhật giao diện với các bước giải
-                    console.log("Puzzle solution steps:", data);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        // Hàm hiển thị puzzle
-        function renderPuzzle(puzzle) {
-            puzzleDiv.innerHTML = '';
-            puzzle.forEach((num, index) => {
-                const div = document.createElement('div');
-                div.classList.add('tile');
-
-                if (num !== 0) {
-                    const row = Math.floor((num - 1) / 3);
-                    const col = (num - 1) % 3;
-                    div.style.backgroundImage = `url(${originalImage.src})`;
-                    div.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
-                } else {
-                    div.style.backgroundColor = 'white';
-                }
-
-                div.addEventListener('click', function () {
-                    moveTile(num);
-                });
-                puzzleDiv.appendChild(div);
-            });
-        }
-
-        // Hàm tải ảnh và hiển thị ảnh gốc
-        function loadImage() {
-            const fileInput = document.getElementById('imageInput');
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                originalImage.src = e.target.result;
-                renderPuzzle(initialPuzzle);
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        }
-
-        // Khởi tạo puzzle ban đầu
-        const initialPuzzle = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-        renderPuzzle(initialPuzzle);
-    </script>
+    <iframe src="http://localhost:8000" title="Puzzle Game"></iframe>
 </body>
 
 </html>

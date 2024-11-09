@@ -5,6 +5,6 @@ COPY ./app /app
 
 RUN pip install flask pymongo
 
-EXPOSE 3000
+EXPOSE 80
 
 CMD ["python", "main.py"]

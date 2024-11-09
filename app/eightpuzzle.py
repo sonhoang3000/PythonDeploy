@@ -1,9 +1,8 @@
+import sys
 import numpy as np
 import heapq
 import random
-from flask import Flask, jsonify, request, render_template
 
-app = Flask(__name__)
 
 class PuzzleState:
     def __init__(self, puzzle, parent=None):
@@ -28,11 +27,16 @@ class PuzzleState:
         steps = [(0, -1), (0, 1), (-1, 0), (1, 0)]
         for step in steps:
             new_blank_index = self.blank_index + step[0] * 3 + step[1]
-            if new_blank_index in range(9) and \
-               not (self.blank_index % 3 == 0 and step[1] == -1) and \
-               not (self.blank_index % 3 == 2 and step[1] == 1):
+            if (
+                new_blank_index in range(9)
+                and not (self.blank_index % 3 == 0 and step[1] == -1)
+                and not (self.blank_index % 3 == 2 and step[1] == 1)
+            ):
                 new_puzzle = self.puzzle.copy()
-                new_puzzle[self.blank_index], new_puzzle[new_blank_index] = new_puzzle[new_blank_index], new_puzzle[self.blank_index]
+                new_puzzle[self.blank_index], new_puzzle[new_blank_index] = (
+                    new_puzzle[new_blank_index],
+                    new_puzzle[self.blank_index],
+                )
                 child_state = PuzzleState(new_puzzle, self)
                 child_state.g = self.g + 1
                 child_state.h = child_state.heuristic()
@@ -42,6 +46,7 @@ class PuzzleState:
 
     def __lt__(self, other):
         return self.f < other.f
+
 
 class EightPuzzleSolver:
     def __init__(self, initial_puzzle):
@@ -69,6 +74,7 @@ class EightPuzzleSolver:
             path.append(state.puzzle)
             state = state.parent
         return path[::-1]
+
 
 class EightPuzzleGame:
     def __init__(self):
@@ -107,22 +113,29 @@ class EightPuzzleGame:
     def get_puzzle(self):
         return self.puzzle.tolist()
 
+
 game = EightPuzzleGame()
 
-@app.route('/')
-def index():
-    return render_template('game.html')
 
-@app.route('/shuffle', methods=['GET'])
-def shuffle():
-    game.shuffle_puzzle()
-    return jsonify({"puzzle": game.get_puzzle()})
+if sys.platform not in ("emscripten", "wasi"):
+    from flask import Flask, jsonify, request, render_template
 
-@app.route('/move', methods=['POST'])
-def move():
-    data = request.json
-    game.move_tile(data['index'])
-    return jsonify({"puzzle": game.get_puzzle()})
+    app = Flask(__name__)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    @app.route("/")
+    def index():
+        return render_template("game.html")
+
+    @app.route("/shuffle", methods=["GET"])
+    def shuffle():
+        game.shuffle_puzzle()
+        return jsonify({"puzzle": game.get_puzzle()})
+
+    @app.route("/move", methods=["POST"])
+    def move():
+        data = request.json
+        game.move_tile(data["index"])
+        return jsonify({"puzzle": game.get_puzzle()})
+
+    if __name__ == "__main__":
+        app.run(debug=True)

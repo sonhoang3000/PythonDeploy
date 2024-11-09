@@ -1,8 +1,7 @@
-from flask import Flask, jsonify, request
+import sys
 import numpy as np
 import random
 
-app = Flask(__name__)
 
 # Bổ sung lớp FifteenPuzzleGame để trả về dữ liệu JSON cho giao diện web
 class FifteenPuzzleGame:
@@ -37,18 +36,24 @@ class FifteenPuzzleGame:
     def get_puzzle(self):
         return self.puzzle.tolist()
 
+
 game = FifteenPuzzleGame()
 
-@app.route('/shuffle', methods=['GET'])
-def shuffle():
-    game.shuffle_puzzle()
-    return jsonify({"puzzle": game.get_puzzle()})
+if sys.platform not in ("emscripten", "wasi"):
+    from flask import Flask, jsonify, request
 
-@app.route('/move', methods=['POST'])
-def move():
-    data = request.json
-    game.move_tile(data['index'])
-    return jsonify({"puzzle": game.get_puzzle()})
+    app = Flask(__name__)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    @app.route("/shuffle", methods=["GET"])
+    def shuffle():
+        game.shuffle_puzzle()
+        return jsonify({"puzzle": game.get_puzzle()})
+
+    @app.route("/move", methods=["POST"])
+    def move():
+        data = request.json
+        game.move_tile(data["index"])
+        return jsonify({"puzzle": game.get_puzzle()})
+
+    if __name__ == "__main__":
+        app.run(debug=True)
