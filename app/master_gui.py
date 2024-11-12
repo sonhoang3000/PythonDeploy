@@ -42,11 +42,20 @@ if sys.platform not in ("emscripten", "wasi"):
 
     BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build/web")
 
-    @app.route("/game")
-    def game():
-        # return redirect("http://localhost:8000")   
-        return render_template("game.html")
+@app.route("/game")
+def game():
+    try:
+        user_info = session.get('user_info', {"username": "Unknown", "email": "Unknown"})
+        # Run the main.py script
+        subprocess.Popen(["python", "main.py"], cwd=os.path.dirname(os.path.abspath(__file__)))
+        return render_template("game.html", user_info=user_info)
+    except Exception as e:
+        return f"An error occurred: {e}"
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", debug=True, port=4000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True, port=4000)
