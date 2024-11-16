@@ -2,33 +2,445 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
+    <title>Puzzle Game</title>
+    <style>
+        /* Đơn giản hóa toàn bộ giao diện */
+        body {
+            font-family: Arial, sans-serif;
+            background: #333; /* Màu nền tối giản */
+            margin: 0;
+            padding: 10px;
+            color: #fff;
+        }
 
-<body class="flex flex-col h-screen bg-gray-200">
-    <header class="bg-gray-800 text-white text-center py-2 text-2xl flex justify-between items-center px-4">
-        <span>GAME</span>
-        <a href="/logout" class="text-sm bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
-            Logout
-        </a>
-    </header>
-    <div class="flex flex-1">
-        <div class="w-1/4 bg-white p-5 shadow-md">
-            <h3 class="text-lg font-semibold mb-4">Lịch sử chơi game</h3>
-            <!-- Add game history content here -->
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 250px 1fr 250px; /* Thêm cột thứ 3 cho ảnh gốc */
+            gap: 20px;
+        }
+
+        .left-panel {
+            background: #444; /* Màu xám đơn giản */
+            padding: 15px;
+            border: 1px solid #555;
+        }
+
+        .team-info h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .team-info p {
+            margin: 5px 0;
+        }
+
+        .score-display {
+            font-size: 24px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #006400; /* Màu xanh lá đậm */
+            border: 2px solid #004d00;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #score {
+            color: #ffff00; /* Màu vàng cho số điểm */
+            font-size: 28px;
+        }
+
+        .user-info {
+            background: #555;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .logout-btn {
+            background: #666;
+            padding: 5px 10px;
+            color: white;
+            text-decoration: none;
+        }
+
+        button {
+            padding: 8px 15px;
+            font-size: 14px;
+            background: #555;
+            color: white;
+            border: 1px solid #666;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #666;
+        }
+
+        .game-area {
+            background: #444;
+            padding: 20px;
+            border: 1px solid #555;
+        }
+
+        canvas {
+            border: 1px solid #555;
+            background: #333;
+        }
+
+        .reference-image {
+            background: #444;
+            padding: 15px;
+            border: 1px solid #555;
+            height: fit-content; /* Điều chỉnh chiều cao tự động */
+        }
+
+        .reference-image img {
+            width: 220px; /* Chiều rộng cố định */
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .game-history {
+            background: #444;
+            padding: 10px;
+            border: 1px solid #555;
+        }
+
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #555;
+        }
+
+        /* Bỏ hết các hiệu ứng */
+        .controls button::after,
+        .winner-popup button:hover,
+        canvas:hover,
+        .controls button:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Bỏ các hiệu ứng gradient và animation */
+        @keyframes popupGlow {
+            from, to {
+                box-shadow: none;
+            }
+        }
+
+        @keyframes imageLoad {
+            from, to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Thêm style cho popup */
+        .popup-overlay {
+            display: none; /* Ẩn popup mặc định */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .winner-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #444;
+            padding: 20px;
+            border: 1px solid #555;
+            text-align: center;
+        }
+
+        .winner-popup h2 {
+            margin-top: 0;
+        }
+
+        .winner-popup button {
+            margin-top: 15px;
+        }
+
+        /* Style cho các nút */
+        .shuffle-btn {
+            background: #8B4513; /* Màu nâu cho nút xáo trộn */
+            border: 1px solid #654321;
+        }
+
+        .solve-btn {
+            background: #006400; /* Màu xanh lá đậm cho nút giải */
+            border: 1px solid #004d00;
+        }
+
+        .stop-btn {
+            background: #8B0000; /* Màu đỏ đậm cho nút dừng */
+            border: 1px solid #660000;
+        }
+
+        .image-btn {
+            background: #4B0082; /* Màu tím đậm cho nút tải ảnh */
+            border: 1px solid #3a0066;
+        }
+
+        .puzzle-type-btn {
+            background: #00008B; /* Màu xanh dương đậm cho nút đổi loại puzzle */
+            border: 1px solid #000066;
+        }
+
+        .logout-btn {
+            background: #B22222; /* Màu đỏ gạch cho nút đăng xuất */
+            border: 1px solid #8b1a1a;
+        }
+
+        /* Hiệu ứng hover đơn giản */
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Cập nhật HTML cho các nút */
+        button {
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        /* Style cho phần checkbox hiển thị số */
+        .show-numbers {
+            margin: 10px 0;
+            padding: 10px;
+            background: #444;
+            border: 1px solid #555;
+        }
+
+        .checkbox {
+            margin-right: 8px;
+        }
+
+        .delete-history-btn {
+            background: #B22222; /* Màu đỏ gạch */
+            color: white;
+            border: 1px solid #8b1a1a;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .delete-history-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Cập nhật layout cho right-panel */
+        .game-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="left-panel">
+            <div class="game-info">
+                <div class="team-info">
+                    <h1>Puzzle Game</h1>
+                    <div class="user-info">
+                        <p>Xin chào, <strong>{{ username }}</strong>!</p>
+                        <a href="{{ url_for('logout') }}" class="logout-btn">Đăng xuất</a>
+                    </div>
+                    <p>Nhóm 3</p>
+                    <p><strong>Thành viên:</strong></p>
+                    <p>Nguyễn Trần Khánh Ngọc</p>
+                    <p>Vũ Hoàng Sơn</p>
+                    <p>Nguyễn Thị Xuân Mai</p>
+                    <p>Nguyễn Văn Quốc Anh</p>
+                </div>
+                <div class="score-display">
+                    Điểm: <span id="score">1000</span>
+                </div>
+                <div class="show-numbers">
+                    <input type="checkbox" id="showNumbers" class="checkbox" checked>
+                    <label for="showNumbers">Hiển thị số</label>
+                </div>
+            </div>
+            <div class="game-history">
+                <h2>Lịch sử chơi</h2>
+                <button onclick="deleteGameHistory()" class="delete-history-btn">Xóa lịch sử</button>
+                <div class="history-list" id="historyList">
+                    <!-- Lịch sử sẽ được thêm vào đây bằng JavaScript -->
+                </div>
+            </div>
         </div>
-        <div class="flex-1 flex justify-center items-center">
+        
+        <div class="game-panel">
+            <div class="game-area">
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button class="shuffle-btn" onclick="shuffle()">Xáo trộn</button>
+                <button class="solve-btn" onclick="solve()" id="solveBtn">Giải</button>
+                <button class="stop-btn" onclick="stopSolving()" id="stopBtn" style="display: none;">Dừng</button>
+                <button class="image-btn" onclick="loadImage()">Tải ảnh</button>
+                <button class="puzzle-type-btn" onclick="changePuzzleType('3x3')">3x3</button>
+                <button class="puzzle-type-btn" onclick="changePuzzleType('4x4')">4x4</button>
+            </div>
         </div>
-        <div class="w-1/4 bg-white p-5 shadow-md">
-            <h3 class="text-lg font-semibold mb-4">Thông tin người dùng</h3>
-            <p><strong>Tên đăng nhập:</strong> {{ user_info.username }}</p>
-            <p><strong>Email:</strong> {{ user_info.email }}</p>
-            <p><strong>ID:</strong> {{ user_info._id }}</p>
+
+        <div class="reference-image">
+            <h3>Ảnh gốc</h3>
+            <img id="originalImage" alt="Ảnh gốc" style="display: none;">
         </div>
     </div>
-</body>
 
+    <!-- Thêm HTML cho popup -->
+    <div class="popup-overlay" id="winnerPopup">
+        <div class="winner-popup">
+            <h2>🎉 Chúc mừng! 🎉</h2>
+            <p>Bạn đã hoàn thành puzzle!</p>
+            <p>Điểm số: <span id="finalScore">0</span></p>
+            <button onclick="closeWinnerPopup()">Chơi lại</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 1000;
+        const scoreDisplay = document.getElementById('score');
+        const showNumbersCheckbox = document.getElementById('showNumbers');
+
+        function updateScore(points) {
+            score = Math.max(0, score + points);
+            scoreDisplay.textContent = score;
+        }
+
+        showNumbersCheckbox.addEventListener('change', function() {
+            if (game) {
+                game.showNumbers = this.checked;
+                game.draw();
+            }
+        });
+
+        function updateButtons(isAnimating) {
+            document.getElementById('solveBtn').textContent = isAnimating ? 'Dừng' : 'Giải';
+        }
+
+        function showWinnerPopup(score) {
+            const popup = document.getElementById('winnerPopup');
+            const finalScore = document.getElementById('finalScore');
+            finalScore.textContent = score;
+            popup.style.display = 'block';
+            createConfetti();
+        }
+
+        function closeWinnerPopup() {
+            const popup = document.getElementById('winnerPopup');
+            popup.style.display = 'none';
+            game.resetGame();
+            score = 1000;
+            document.getElementById('score').textContent = score;
+            loadGameHistory();
+        }
+
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `confetti ${Math.random() * 3 + 2}s ease-in-out infinite`;
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        // Thêm style animation cho confetti
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes confetti {
+                0% { transform: translateY(-10vh) rotate(0deg); }
+                100% { transform: translateY(100vh) rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Hàm để tải và hiển thị lịch sử
+        async function loadGameHistory() {
+            try {
+                const response = await fetch('/api/get-history');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Lỗi:', data.error);
+                    return;
+                }
+
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = ''; // Xóa nội dung cũ
+
+                data.history.forEach(record => {
+                    const date = new Date(record.timestamp);
+                    const formattedDate = date.toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div>
+                            <span class="history-score">Điểm: ${record.score}</span>
+                            <span class="history-type">${record.puzzle_type}</span>
+                        </div>
+                        <span class="history-date">${formattedDate}</span>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            } catch (error) {
+                console.error('Lỗi khi tải lịch sử:', error);
+            }
+        }
+
+        // Tải lịch sử khi trang được load
+        window.addEventListener('load', loadGameHistory);
+
+        // Thêm hàm xóa lịch sử
+        async function deleteGameHistory() {
+            try {
+                const response = await fetch('/api/delete-history', {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Xóa nội dung hiển thị trong historyList
+                    const historyList = document.getElementById('historyList');
+                    historyList.innerHTML = '';
+                    alert('Đã xóa lịch sử thành công!');
+                } else {
+                    alert('Không thể xóa lịch sử: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Lỗi khi xóa lịch sử:', error);
+                alert('Có lỗi xảy ra khi xóa lịch sử!');
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
 </html>
