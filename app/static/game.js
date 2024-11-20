@@ -392,7 +392,7 @@ function loadImage() {
     input.click();
 }
 
-function changePuzzle(type) {
+function changePuzzleType(type) {
     if (!game.isAnimating) {
         const size = type === '3x3' ? 3 : 4;
         game.changeSize(size);

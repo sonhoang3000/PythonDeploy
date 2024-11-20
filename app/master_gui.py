@@ -4,9 +4,8 @@ from eightpuzzle import EightPuzzleGame
 from fifteenpuzzle import FifteenPuzzleGame
 from datetime import datetime
 
-
 if sys.platform not in ("emscripten", "wasi"):
-    from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+    from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, session
     from pymongo import MongoClient
     import os
 
@@ -33,7 +32,8 @@ if sys.platform not in ("emscripten", "wasi"):
             password = request.form["password"]
             user = users_collection.find_one({"username": username, "password": password})
             if user:
-                return redirect(url_for("game"))  # Chuyển đến trang trò chơi sau khi đăng nhập
+                session['username'] = username
+                return redirect(url_for("game"))
             else:
                 return "Login failed. Invalid username or password."
         return render_template("login.html")
@@ -125,11 +125,11 @@ if sys.platform not in ("emscripten", "wasi"):
             if 'username' not in session:
                 return jsonify({'error': 'Chưa đăng nhập'}), 401
             
-            # Lấy 5 kết quả mới nhất
+            # Lấy 10 kết quả mới nhất
             history = game_history_collection.find(
                 {'username': session['username']},
                 {'_id': 0}
-            ).sort('timestamp', -1).limit(5)
+            ).sort('timestamp', -1).limit(10)
             
             # Chuyển đổi timestamp thành chuỗi ISO để JSON có thể xử lý
             history_list = []

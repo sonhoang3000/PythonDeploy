@@ -69,6 +69,7 @@ class PuzzleGUI:
 
     def draw(self):
         self.screen.fill(XMAI)
+        
         # Vẽ grid và các mảnh puzzle
         grid_size = 3 if self.current_puzzle == "8" else 4
         cell_size = 600 // grid_size
